@@ -1,0 +1,361 @@
+<?php
+
+
+/**
+ * @file
+ * Registration form for the web apollo page.
+ */
+
+define('FROM_ADDRESS', '"NAL-i5k"<i5k@ars.usda.gov>');
+
+
+/**
+ * Implements hook_permission().
+ */
+function web_apollo_permission() {
+  return array(
+    'administer web-apollo' => array(
+      'title' => t('Administer web apollo form'),
+    ),
+	'administer web-apollo users' => array(
+      'title' => t('Administer web apollo users list'),
+    ),
+	'access web-apollo' => array(
+      'title' => t('Access web apollo'),
+    ),
+  );
+}
+ 
+/**
+ * Implementation of hook_menu().
+ */
+function web_apollo_menu() {
+  $items = array();
+  
+  $items['web-apollo-registration'] = array(
+    'title' => 'Web Apollo Registration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('web_apollo_registration'),    
+    'access arguments' => array('access web-apollo'),
+    'type' => MENU_CALLBACK,
+    'weight' => 100,
+  );
+  
+  $items['admin/structure/webapollo'] = array(
+    'title' => 'Web apollo',
+	'description' => 'List of webapollo users for approve/reject',
+    'page callback' => 'webapollo_register_users',	   
+	'access arguments' => array('administer web-apollo users'),		
+    'file' => 'web_apollo.admin.inc',
+  );
+  
+  $items['admin/structure/webapollo/users'] = array(
+    'title' => 'Users List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+  
+  $items['admin/structure/webapollo/settings'] = array(
+    'title' => 'Settings',
+	'description' => 'Build webapollo settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('web_apollo_admin'),
+    'access arguments' => array('administer web-apollo'),
+    'type' => MENU_LOCAL_TASK,    
+    'file' => 'web_apollo.admin.inc',
+  );
+  
+
+  
+    $items['webapollo/user/%/edit'] = array(
+    'title' => 'Approve or Reject the user request for web apollo account',
+    'page callback' => 'drupal_get_form',
+	'page arguments' => array('webapollo_user_approval', 2),  
+    'access callback' => TRUE,  	
+    'type' => MENU_CALLBACK,
+    'file' => 'web_apollo.admin.inc',
+  );
+  
+  return $items;
+}
+
+/**
+ *  hook_form() registration form for the web apollo
+ */
+function web_apollo_registration($form, &$form_state) {
+ $form['name'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('Full Name'),    
+    '#maxlength' => 255,
+    '#required' => TRUE,
+	'#prefix' => "<div id=\"web_apollo_param\">Complete the form below and click 'Submit' to register for a Web Apollo account.  Only registered users can view, create or change annotations.",
+	'#suffix' => '</div>'
+  );
+  
+  $form['mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email Address'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  
+  $web_apollo_organism = variable_get('web_apollo_organism');
+  if(!empty($web_apollo_organism)) {
+    $organism_array = get_webapollo_organisms($web_apollo_organism); 
+  }
+   
+  $form['organism'] = array(
+    '#type' => 'select',
+    '#title' => t('Organism'),
+    '#options' => $organism_array,
+    '#required' => TRUE,	
+  );
+    
+  $form['institution'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Institution'),
+    '#required' => TRUE,
+  );
+  
+  $form['comments'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Genes or gene families that you intend to annotate'),
+    '#required' => TRUE,
+  );  
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  
+  return $form;
+}
+
+/**
+ * Web apollo registration form validation
+ * 1 - organism field is required 
+ * 2 - Email should be valid
+ * 3 - Using same emailId cannot registered for the same organism
+ */
+function web_apollo_registration_validate($form, &$form_state) {
+  //Character validation
+  $name = $form_state['input']['name'];
+  if (!preg_match('!^[\w @-]*$!', $name)){
+     form_set_error('name', t('Your Name can only contains numbers, letters @  - _.'));
+   }
+   $institution = $form_state['input']['institution'];
+  if (!preg_match('!^[\w @-]*$!', $institution)){
+     form_set_error('institution', t('Your Name can only contains numbers, letters @  - _.'));
+   }
+
+  if (!$form_state['values']['organism']) {
+    form_set_error('organism', t('You must select a valid organism.'));
+  }
+  if (!valid_email_address($form_state['values']['mail'])) {
+    form_set_error('mail', t('You must enter a valid e-mail address.'));
+  }
+    
+  $result = db_query("SELECT uid FROM {webapollo_users}
+                      WHERE email = :email and organisms = :organism",
+					  array(':email' => $form_state['values']['mail'], ':organism' => $form_state['values']['organism']))->fetchObject();           
+  
+  if(isset($result) && !empty($result->uid)) {
+    form_set_error('organism', t('You already registered for this organism.'));
+  }
+}
+
+function web_apollo_registration_submit($form, &$form_state) {  
+  $recipients = variable_get('web_apollo_recipients'); 
+  $values = $form_state['values'];
+  
+  $pass = gen_random_password(8);  /* generate dynamic password */
+  $created = time();
+  
+  /* INSERTING DATA INTO webapollo_users TABLE */
+  $web_apollo_organism = variable_get('web_apollo_organism');
+  $organism_data = get_webapollo_organisms($web_apollo_organism);         
+  $organism_value = $organism_data[$values['organism']];
+	   
+  $data = Array(
+    'name' => $values['name'],
+	'pass' => $pass,
+	'email' => $values['mail'],
+	'organisms' => $values['organism'],
+	'institution' => $values['institution'],
+	'comment' => $values['comments'],
+	'created' => $created	 	 
+  );
+     
+  drupal_write_record('webapollo_users', $data); 
+  
+   // E-mail address of the sender: as the form field is a text field.  
+  $from = $values['name']."<".$values['mail'].">";
+  // Send the e-mail to the recipients using the site default language.
+  $sent =  drupal_mail('web_apollo', 'webapollo_mail', $recipients, language_default(), $values, $from, TRUE);
+  if(empty($sent['result']) || ($sent['result'] != 1)) {
+    //handle send fail, $sent ===false when mail fails, but it won't always recognize a failure
+    drupal_set_message(t('Failed to send e-mail.'));
+  } else
+    drupal_set_message(t('Your message has been sent. You will receive an email confirmation shortly.'));
+
+  //Email to the registered user stating successfully registered and once approved from admin you can login to the site
+  $user_email_sent = drupal_mail('web_apollo', 'webapollo_user_email', $values['mail'], language_default(), $values, FROM_ADDRESS, TRUE);
+  
+  if(empty($user_email_sent['result']) || ($user_email_sent['result'] != 1) ) {
+	drupal_set_message(t('Failed to send the email due to some technical problems'));	  
+  } 
+  
+  // Jump to home page rather than back to web apollo registration page to avoid
+  // contradictory messages if flood control has been activated.
+  $form_state['redirect'] = '';  
+}
+
+/**
+ * drupal mail looks for a function that matches the first parameter _ mail to build the message
+ */		
+function web_apollo_mail($key, &$message, $params) {
+  $language = $message['language'];
+  $web_apollo_organism = variable_get('web_apollo_organism');
+  $organism_data = get_webapollo_organisms($web_apollo_organism);         
+  $organism_value = $organism_data[$params['organism']];
+  $variables = array(
+    '!organism_data' => $organism_data,
+    '!organism_value' => $organism_value,  
+    '!organism' => $params['organism'],	
+	'!user' => $params['name'],
+	'!form' => url($_GET['q'], array('absolute' => TRUE)),
+  );  
+ 
+  switch($key) {
+	//switching on $key lets you create variations of the email based on the $key parameter
+    case 'webapollo_mail':
+	  $message['subject'] = t('Web Apollo Registration', $variables, array('langcode' => $language->language)); //$variabless required even if not used to get $language in there
+
+	  //the email body is here, inside the $message array	  
+  	  $message['body'][] = t("!user sent a message using the web apollo registration form at !form.", $variables, array('langcode' => $language->language));	 
+	  $message['body'][] = '<br><b>Organism:</b> '.$organism_value.'<Br>
+				              <b>Institution:</b> '.$params['institution'].'<br>
+							  <b>Other Comments:</b> '.$params['comments'];
+      $message['body'][] = '<br><BR>Regards,<br><bR>The NAL i5k team';
+	
+	  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+	 
+	  break;
+    case 'webapollo_user_email':
+      $get_user_before_at = explode("@", $params['mail']);
+      $message['subject'] = t('Web Apollo registration for "!organism_value"', $variables, array('langcode' => $language->language));	
+      $message['body'][] = t("Dear !user, <br><br> Thank you for registering to annotate '!organism'.", $variables, array('langcode' => $language->language));
+      $message['body'][] = 'Once approved by the '.$organism_value.' community contact, we will send your account information to the email provided. Contact us if you do not receive an email with your login credentials within one business day.';          
+      $message['body'][] = '<Br><br>Regards,<br><bR>The NAL i5k team';
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      break;
+    case 'webapollo_user_approve_email':	         
+      $message['subject'] = t('Web Apollo user account', $variables, array('langcode' => $language->language));	
+      $message['body'][] = t("Dear !user, <br><br>We have approved your Web Apollo application for '!organism'. Please keep this email for future reference.", $variables, array('langcode' => $language->language));
+      $message['body'][] = '<br><br><b>Username: </b>'.$params['email'];  
+      $message['body'][] = '<br><br><b>Password: </b>'.$params['pass'];
+      $message['body'][] =  '<Br><Br>Web Apollo Site:<br> https://apollo.nal.usda.gov/'.$params['organism_key']; 
+      $message['body'][] =  '<br><br>Annotation guidelines:<bR> http://genomearchitect.org/web_apollo_user_guide';
+      $message['body'][] =  '<bR>We would appreciate it if you followed these annotation rules:<br>';
+      $message['body'][] = 'http://i5k.nal.usda.gov/content/rules-web-apollo-annotation-i5k-pilot-project';
+      $message['body'][] = '<br><br>Finally, you will be automatically subscribed to a low-volume Web Apollo mailing list, which we use to communicate network outages during which Web Apollo will not be available, updates, and other important messages:<br><br>';
+      $message['body'][] = 'http://listserv.nal.usda.gov/cgi-bin/wa?A0=webapollo-users';
+      $message['body'][] = '<Br><br>You will receive a separate email containing your subscription information, including instructions on how to opt out of the mailing list if you choose.';
+      $message['body'][] = '<Br><br>Regards,<br><bR>The NAL i5k team';
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      // For time being added Bcc record, it should get removed in future.
+      $message['headers']['Bcc'] = 'monica.poelchau@ars.usda.gov';
+      break;
+    }
+}
+
+
+/**
+ * get the organisms array
+ * splitting the admin organism settings variable by new line
+ * putting it into a new array called 'organism_data'
+ */
+function get_webapollo_organisms($web_apollo_organism) {
+  $organism_values = preg_split ('/$\R?^/m', $web_apollo_organism);
+  
+  $organism_data = array('' => 'Select');
+  for($i=0; $i < count($organism_values); $i++) {
+    $temp = explode('|', $organism_values[$i]);
+    $organism_data[$temp[0]] = $temp[1];
+  }   
+	
+  return $organism_data;
+}
+
+/**
+ *  Generate Random password contains alphabets and numbers
+ */
+function gen_random_password($length=16)
+{
+  $chars ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"; //length:36
+  $final_rand='';
+  for($i=0;$i<$length; $i++)
+    {
+      $final_rand .= $chars[ rand(0,strlen($chars)-1)];
+    }
+  return $final_rand;
+}
+
+
+/**
+ * Default implementation of hook_captcha().
+ */
+function web_apollo_captcha($op, $captcha_type = '') {
+  $result = captcha_captcha($op, $captcha_type);  
+  
+    if (($op == 'generate') && ($captcha_type == 'Math')) {
+      $result = array();
+      $answer = mt_rand(1, 20);
+      $x = mt_rand(1, $answer);
+      $y = $answer - $x;
+      $result['solution'] = "$answer";
+  
+      // Build challenge widget.
+      // Note that we also use t() for the math challenge itself. This makes
+      // it possible to 'rephrase' the challenge a bit through localization
+      // or string overrides.
+      $result['form']['captcha_response'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Math question'),
+        '#description' => t('Solve this simple math problem and enter the result to help us reduce spam. E.g. for 1+3, enter 4.'),
+        '#field_prefix' => t('@x + @y = ', array('@x' => $x, '@y' => $y)),
+        '#size' => 4,
+        '#maxlength' => 2,
+        '#required' => TRUE,
+      );
+       
+    }
+  return $result;
+}
+
+/**
+ *  Implementation of hook_theme().
+ */
+function web_apollo_theme() {
+  return array(
+    'webapollo_user_approval' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+function theme_webapollo_user_approval($variables) {
+  $form = $variables['form'];
+
+  if(!empty($form['web_apollo_table']['name']['#value'])) {       
+    $output = '<table>';  
+    $output .= '<tr><td>Name</td><td> '.$form['web_apollo_table']['name']['#value']."</td></tr>";  
+    $output .= '<Tr><td>Email</td><td>'.$form['web_apollo_table']['email']['#value']."</td></tr>";
+    $output .= '<tr><td>Organism</td><td> '.$form['web_apollo_table']['organism']['#value']."</td></tr>";  
+    $output .= '<tr><td>Status</td><td>'.drupal_render($form['web_apollo_table']['status']).'</td></tr>';   
+    $output .= "</table>";
+  } 
+  $output .= drupal_render_children($form);
+  
+  return $output;
+}

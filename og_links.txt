@@ -1,0 +1,150 @@
+nid vid delta links
+567242@@567243@@0@@
+85475@@85476@@0@@Blattella germanica @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-german-cockroach
+85491@@85492@@0@@Acerentomon maius @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-trentino-conehead
+85490@@85491@@0@@Catajapyx aquilonaris @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-silvestris-northern-forcepstail
+85493@@85494@@0@@Euperipatoides rowelli @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-velvet-worm
+85467@@85468@@0@@Halyomorpha halys @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-brown-marmorated-stink-bug
+85480@@85481@@0@@Hyalella azteca @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-hyalella-azteca
+85479@@85480@@0@@Machilis hrabei @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-hrabes-jumping-bristletail
+85481@@85482@@0@@Sminthurus viridis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-lucerne-flea
+85477@@85478@@0@@Zeugomantispa minuta @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-green-mantisfly
+85464@@85465@@0@@Anoplophora glabripennis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-asian-long-horned-beetle
+85464@@85465@@1@@Assembly Methods|/node/85498
+85464@@85465@@2@@Annotation Methods|/node/139967
+85464@@85465@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA167479
+85464@@85465@@4@@Outside Sources|/node/139962
+85492@@85493@@0@@Athalia rosae @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-turnip-sawfly
+85492@@85493@@1@@Assembly Methods|/node/85505
+85492@@85493@@2@@Annotation Methods|/node/139968
+85492@@85493@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA167403
+85483@@85484@@0@@Ceratitis capitata @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-mediterranean-fruit-fly
+85483@@85484@@1@@Assembly Methods|/node/85503
+85483@@85484@@2@@Annotation Methods|/node/139969
+85483@@85484@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA201381
+85483@@85484@@4@@Outside Sources|/node/139965
+85466@@85467@@0@@Cimex lectularius @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-bed-bug
+85466@@85467@@1@@Assembly Methods|/node/85499
+85466@@85467@@2@@Annotation Methods|/node/139966
+85466@@85467@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA167477
+683082@@683088@@0@@Assembly Methods|/node/683083
+683082@@683088@@1@@Annotation Methods|/node/683084
+683082@@683088@@2@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA237968
+85471@@85472@@0@@Leptinotarsa decemlineata @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-colorado-potato-beetle
+85471@@85472@@1@@Assembly Methods|/node/139958
+85471@@85472@@2@@Annotation Methods|/node/291080
+85471@@85472@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA171749
+103470@@103471@@0@@D. citri@psyllid.org|http://www.psyllid.org/node/1
+103470@@103471@@1@@Assembly Methods|/node/683081
+103470@@103471@@2@@Annotation Methods|/node/683080
+103470@@103471@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA29447
+103470@@103471@@4@@Outside Sources|node/139961
+85473@@85474@@0@@Agrilus planipennis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-emerald-ash-borer
+85473@@85474@@1@@Assembly Methods|/node/291070
+85473@@85474@@2@@Annotation Methods|/node/683067/
+85473@@85474@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/230921
+85473@@85474@@4@@Outside Sources|node/139963
+85465@@85466@@0@@Centruroides exilicauda @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/bark-scorpion-genome-project
+85465@@85466@@1@@Assembly Methods|/node/139960
+85465@@85466@@2@@Annotation Methods|/node/683066
+85465@@85466@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/168116
+85478@@85479@@0@@Pachypsylla venusta @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-hackberry-petiole-gall-psyllid
+85478@@85479@@1@@Assembly Methods|/node/85501
+85478@@85479@@2@@Annotation Methods|/node/291084
+85478@@85479@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA167476
+85472@@85473@@0@@Parasteatoda tepidariorum @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-common-house-spider
+85472@@85473@@1@@Assembly Methods|/node/85500
+85472@@85473@@2@@Annotation Methods|/node/291085
+85472@@85473@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA167405
+85476@@85477@@0@@Homalodisca vitripennis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/glassy-winged-sharpshooter-genome-project
+85476@@85477@@1@@Assembly Methods|/node/85497
+85476@@85477@@2@@Annotation Methods|/node/683069
+85476@@85477@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/168119
+85476@@85477@@4@@Outside Sources|/node/139964
+683079@@683085@@0@@Copidosoma floridanum @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/copidosoma-floridanum-genome-project
+683079@@683085@@1@@Assembly Methods|/node/291074
+683079@@683085@@2@@Annotation Methods|/node/683068
+683079@@683085@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/171748
+85474@@85475@@0@@Eurytemora affinis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-eurytemora-affinis
+85474@@85475@@1@@Assembly Methods|/node/291071
+85474@@85475@@2@@Annotation Methods|/node/291077
+85474@@85475@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/203087
+85496@@85497@@0@@Frankliniella occidentalis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-western-flower-thrips
+85496@@85497@@1@@Assembly Methods|/node/291072
+85496@@85497@@2@@Annotation Methods|/node/291078
+85496@@85497@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/203209
+85494@@85495@@0@@Gerris buenoi @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-water-strider
+85494@@85495@@1@@Assembly Methods|/node/683062/
+85494@@85495@@2@@Annotation Methods|/node/683072/
+85494@@85495@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/203045
+85488@@85489@@0@@Ladona fulva @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-scarce-chaser
+85488@@85489@@1@@Assembly Methods|/node/85504
+85488@@85489@@2@@Annotation Methods|/node/291079
+85488@@85489@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA194433
+583911@@583917@@0@@Drosophila eugracilis @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+583911@@583917@@1@@Assembly Methods|/node/596160/
+583911@@583917@@2@@Annotation Methods|/node/596476
+583911@@583917@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/67709
+85482@@85483@@0@@Ephemera danica @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-mayfly
+85482@@85483@@1@@Assembly Methods|/node/85502
+85482@@85483@@2@@Annotation Methods|/node/291076
+85482@@85483@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/171755
+85487@@85488@@0@@Orussus abietinus @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-parasitic-wood-wasp
+85487@@85488@@1@@Assembly Methods|/node/291073
+85487@@85488@@2@@Annotation Methods|/node/291083
+85487@@85488@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA171756
+85486@@85487@@0@@Trichogramma pretiosum @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-parasitic-wasp
+85486@@85487@@1@@Assembly Methods|/node/291087
+85486@@85487@@2@@Annotation Methods|/node/291086
+85486@@85487@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA168121
+85469@@85470@@0@@Onthophagus taurus @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-bull-headed-dung-beetle
+85469@@85470@@1@@Assembly Methods|/node/683065
+85469@@85470@@2@@Annotation Methods|/node/683075
+85469@@85470@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/167478
+683077@@683083@@0@@Loxosceles reclusa @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/brown-recluse-spider-genome-project
+683077@@683083@@1@@Assembly Methods|/node/683063
+683077@@683083@@2@@Annotation Methods|/node/683073
+683077@@683083@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/167404
+85484@@85485@@0@@Oncopeltus fasciatus @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-milkweed-bug
+85484@@85485@@1@@Assembly Methods|/node/291082
+85484@@85485@@2@@Annotation Methods|/node/291081
+85484@@85485@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/PRJNA229125
+85470@@85471@@0@@Limnephilus lunatus @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-caddisfly
+85470@@85471@@1@@Assembly Methods|/node/139959
+85470@@85471@@2@@Annotation Methods|/node/683071
+85470@@85471@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/203303
+85495@@85496@@0@@Latrodectus hesperus @ Baylor College of Medicine|https://www.hgsc.bcm.edu/content/i5k-western-black-widow-spider
+85495@@85496@@1@@Assembly Methods|/node/85506
+85495@@85496@@2@@Annotation Methods|/node/683070
+85495@@85496@@3@@NCBI BioProject|https://www.hgsc.bcm.edu/content/i5k-western-black-widow-spider
+567263@@567269@@0@@Drosophila biarmipes @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+567263@@567269@@1@@Assembly Methods|/node/567264
+567263@@567269@@2@@Annotation Methods|/node/567265
+567263@@567269@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/62307
+567266@@567272@@0@@Drosophila bipectinata @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+567266@@567272@@1@@Assembly Methods|/node/567267
+567266@@567272@@2@@Annotation Methods|/node/567269
+567266@@567272@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/62313
+567272@@567278@@0@@Drosophila elegans @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+567272@@567278@@1@@Assembly Methods|/node/567273
+567272@@567278@@2@@Annotation Methods|/node/567274
+567272@@567278@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/62315
+611007@@611013@@0@@Drosophila ficusphila @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+611007@@611013@@1@@Assembly Methods|/node/611008
+611007@@611013@@2@@Annotation Methods|/node/611009
+611007@@611013@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/67709
+611010@@611016@@0@@Drosophila kikkawai @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+611010@@611016@@1@@Assembly Methods|/node/611011
+611010@@611016@@2@@Annotation Methods|/node/611012
+611010@@611016@@3@@NCBI Bioproject|http://www.ncbi.nlm.nih.gov/bioproject/62319
+639128@@639134@@0@@Drosophila rhopaloa @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+639128@@639134@@1@@Assembly Methods|/node/639129
+639128@@639134@@2@@Annotation Methods|/node/639130
+639128@@639134@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/67665
+639132@@639138@@0@@Drosophila takahashii @ Baylor College of Medicine|https://www.hgsc.bcm.edu/arthropods/drosophila-modencode-project
+639132@@639138@@1@@Assembly Methods|/node/639133
+639132@@639138@@2@@Annotation Methods|/node/639134
+639132@@639138@@3@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/62321
+683085@@683091@@0@@Assembly Methods|/node/683087
+683085@@683091@@1@@Annotation Methods|
+683085@@683091@@2@@NCBI BioProject|http://www.ncbi.nlm.nih.gov/bioproject/45867

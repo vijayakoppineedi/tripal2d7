@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the node module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function web_apollo_schema() {
+  
+ $schema['webapollo_users'] = array(
+    'description' => 'Web apollo users table.',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique user ID.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Unique user name.',
+      ),
+      'pass' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "User's password (md5 hash).",
+      ),
+      'email' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => "User's email address.",
+      ),
+	  'organisms' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Organisms',
+      ),
+	  'institution' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Institution',
+      ),
+	  'comment' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,        
+        'description' => 'The comment body.',
+      ),
+      'created' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp for when user was created.',
+      ),
+	  'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 2,
+        'size' => 'tiny',
+        'description' => 'Whether the user is active(1) or blocked(0).',
+      ),
+   ),
+   'unique keys' => array(
+     'email_organism' => array('email', 'organisms'),	 
+	),
+    'primary key' => array('uid'),
+  );
+
+return $schema;
+} 
+
+/**
+ * Implements hook_uninstall().
+ */
+function web_apollo_uninstall() {
+    // Remove records from variable table.
+  variable_del('web_apollo_organism');
+  variable_del('web_apollo_recipients');
+}

@@ -1,0 +1,13 @@
+name = Web Apollo
+description = Web apollo registration page
+package = Custom
+version = 1.0
+core = 7.x
+
+
+; Information added by Drupal.org packaging script on 2014-07-21
+version = "7.x-1.0"
+core = "7.x"
+project = "Custom"
+datestamp = "1405966115"
+

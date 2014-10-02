@@ -1,0 +1,13 @@
+name = Custom i5k
+description = Custom i5k module used to alter forms, write views handlers etc.,
+package = Custom
+version = 1.0
+core = 7.x
+
+
+; Information added by Drupal.org packaging script on 2014-05-29
+version = "7.x-1.0"
+core = "7.x"
+project = "Custom"
+datestamp = "1401396528"
+
