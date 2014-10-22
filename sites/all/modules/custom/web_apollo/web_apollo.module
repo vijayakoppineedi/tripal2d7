@@ -108,6 +108,7 @@ function web_apollo_registration($form, &$form_state) {
     '#type' => 'select',
     '#title' => t('Organism'),
     '#options' => $organism_array,
+	'#multiple' => TRUE,
     '#required' => TRUE,	
   );
     
@@ -138,6 +139,7 @@ function web_apollo_registration($form, &$form_state) {
  * 3 - Using same emailId cannot registered for the same organism
  */
 function web_apollo_registration_validate($form, &$form_state) {
+
   //Character validation
   $name = $form_state['input']['name'];
   if (!preg_match('!^[\w @-]*$!', $name)){
@@ -153,40 +155,63 @@ function web_apollo_registration_validate($form, &$form_state) {
   }
   if (!valid_email_address($form_state['values']['mail'])) {
     form_set_error('mail', t('You must enter a valid e-mail address.'));
-  }
-    
-  $result = db_query("SELECT uid FROM {webapollo_users}
-                      WHERE email = :email and organisms = :organism",
-					  array(':email' => $form_state['values']['mail'], ':organism' => $form_state['values']['organism']))->fetchObject();           
+  }    
+	
+  // Multi select organism validation
+  $organism = $form_state['values']['organism'];
+  $email = $form_state['values']['mail'];
+  // getting only array values from associated array(not key values)
+  $organism_array_values = array_values($organism);
   
-  if(isset($result) && !empty($result->uid)) {
-    form_set_error('organism', t('You already registered for this organism.'));
-  }
+  $results = db_select('webapollo_users', 'w')
+	          ->fields('w', array(uid, organisms))
+              ->condition('w.email', $email)
+	          ->condition('w.organisms', $organism_array_values, 'IN')
+ 			  ->execute()
+			  ->fetchAll();
+	  		  
+   					  
+   $web_apollo_organism = variable_get('web_apollo_organism');
+   $organism_data = get_webapollo_organisms($web_apollo_organism);             
+  
+   $organism_message = ''; $cnt = 0;
+   foreach($results as $key => $result) {
+	 $organism_message .= rtrim($organism_data[$result->organisms]).", ";  
+	 $cnt++;
+   }
+   $organism_message = rtrim($organism_message, ', ');   
+   
+   if(!empty($organism_message)) {
+      $str_organism_message = ($cnt > 1) ? "organism's ": "organism ";
+	 $message = 'You already registered for the '.$str_organism_message.$organism_message;
+     form_set_error('organism', $message);
+   }
+  
 }
 
 function web_apollo_registration_submit($form, &$form_state) {  
   $recipients = variable_get('web_apollo_recipients'); 
   $values = $form_state['values'];
-  
-  $pass = gen_random_password(8);  /* generate dynamic password */
+  //echo "<pre>"; print_r($values); echo "</pre>";
+  $pass = "Ten2Three"; //gen_xkcd_password(2);  /* generating xkcd dictionary password */
   $created = time();
   
   /* INSERTING DATA INTO webapollo_users TABLE */
   $web_apollo_organism = variable_get('web_apollo_organism');
-  $organism_data = get_webapollo_organisms($web_apollo_organism);         
-  $organism_value = $organism_data[$values['organism']];
-	   
-  $data = Array(
-    'name' => $values['name'],
-	'pass' => $pass,
-	'email' => $values['mail'],
-	'organisms' => $values['organism'],
-	'institution' => $values['institution'],
-	'comment' => $values['comments'],
-	'created' => $created	 	 
-  );
+  $organism_data = get_webapollo_organisms($web_apollo_organism);     
+  foreach($values['organism'] as $key => $organism_val) {  
+    $data = Array(
+      'name' => $values['name'],
+	  'pass' => $pass,
+	  'email' => $values['mail'],
+	  'organisms' => $organism_val,
+	  'institution' => $values['institution'],
+	  'comment' => $values['comments'],
+	  'created' => $created	 	 
+    );
      
-  drupal_write_record('webapollo_users', $data); 
+    drupal_write_record('webapollo_users', $data); 
+  }
   
    // E-mail address of the sender: as the form field is a text field.  
   $from = $values['name']."<".$values['mail'].">";
@@ -199,7 +224,7 @@ function web_apollo_registration_submit($form, &$form_state) {
     drupal_set_message(t('Your message has been sent. You will receive an email confirmation shortly.'));
 
   //Email to the registered user stating successfully registered and once approved from admin you can login to the site
-  $user_email_sent = drupal_mail('web_apollo', 'webapollo_user_email', $values['mail'], language_default(), $values, FROM_ADDRESS, TRUE);
+  $user_email_sent = 1; //drupal_mail('web_apollo', 'webapollo_user_email', $values['mail'], language_default(), $values, FROM_ADDRESS, TRUE);
   
   if(empty($user_email_sent['result']) || ($user_email_sent['result'] != 1) ) {
 	drupal_set_message(t('Failed to send the email due to some technical problems'));	  
@@ -215,13 +240,27 @@ function web_apollo_registration_submit($form, &$form_state) {
  */		
 function web_apollo_mail($key, &$message, $params) {
   $language = $message['language'];
+  
   $web_apollo_organism = variable_get('web_apollo_organism');
   $organism_data = get_webapollo_organisms($web_apollo_organism);         
-  $organism_value = $organism_data[$params['organism']];
+  
+  if(is_array($params['organism'])) {  
+    $organism_value =  ''; $params_organism = '';
+    foreach($params['organism'] as $keys => $organism_val) {
+      $organism_value .= $organism_data[$organism_val].", ";
+	  $params_organism .= $organism_val.", ";
+    }
+    $organism_value =  rtrim($organism_value, ", ");
+    $params_organism = rtrim($params_organism, ", ");
+  } else {
+    $organism_value = $organism_data[$params['organism']];
+    $params_organism = $params['organism'];
+  }
+  
   $variables = array(
     '!organism_data' => $organism_data,
     '!organism_value' => $organism_value,  
-    '!organism' => $params['organism'],	
+    '!organism' => $params_organism,	
 	'!user' => $params['name'],
 	'!form' => url($_GET['q'], array('absolute' => TRUE)),
   );  
@@ -233,7 +272,7 @@ function web_apollo_mail($key, &$message, $params) {
 
 	  //the email body is here, inside the $message array	  
   	  $message['body'][] = t("!user sent a message using the web apollo registration form at !form.", $variables, array('langcode' => $language->language));	 
-	  $message['body'][] = '<br><b>Organism:</b> '.$organism_value.'<Br>
+	  $message['body'][] = '<br><b>Organism(s):</b> '.$organism_value.'<Br>
 				              <b>Institution:</b> '.$params['institution'].'<br>
 							  <b>Other Comments:</b> '.$params['comments'];
       $message['body'][] = '<br><BR>Regards,<br><bR>The NAL i5k team';
@@ -258,6 +297,7 @@ function web_apollo_mail($key, &$message, $params) {
       $message['body'][] =  '<br><br>Annotation guidelines:<bR> http://genomearchitect.org/web_apollo_user_guide';
       $message['body'][] =  '<bR>We would appreciate it if you followed these annotation rules:<br>';
       $message['body'][] = 'http://i5k.nal.usda.gov/content/rules-web-apollo-annotation-i5k-pilot-project';
+	  $message['body'][] = '<br><br>We recommend using our BLAST resources (https://i5k.nal.usda.gov/blast) to navigate to a particular scaffold. In the BLAST Query page, select the genome assembly as the subject. In the bottom left panel of the BLAST results page, there will be a link-out from each HSP to the appropriate Web Apollo instance. The BLAST HSPs will be displayed as a track in the browser. For a detailed tutorial of out BLAST resources, see https://i5k.nal.usda.gov/content/blast-tutorial.';
       $message['body'][] = '<br><br>Finally, you will be automatically subscribed to a low-volume Web Apollo mailing list, which we use to communicate network outages during which Web Apollo will not be available, updates, and other important messages:<br><br>';
       $message['body'][] = 'http://listserv.nal.usda.gov/cgi-bin/wa?A0=webapollo-users';
       $message['body'][] = '<Br><br>You will receive a separate email containing your subscription information, including instructions on how to opt out of the mailing list if you choose.';
@@ -290,15 +330,31 @@ function get_webapollo_organisms($web_apollo_organism) {
 /**
  *  Generate Random password contains alphabets and numbers
  */
-function gen_random_password($length=16)
+function gen_xkcd_password($num_of_words=1)
 {
-  $chars ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"; //length:36
-  $final_rand='';
-  for($i=0;$i<$length; $i++)
-    {
-      $final_rand .= $chars[ rand(0,strlen($chars)-1)];
+  $dict_lines = file('/usr/share/dict/words', FILE_IGNORE_NEW_LINES);
+  $length = count($dict_lines);
+  $password = '';
+
+  $rand_num = rand(1,9);
+  for ($i = 1; $i <= $num_of_words; $i++) {
+    $plain = FALSE;
+
+    while (!$plain) {
+      // Get random word from $lines
+      $key = mt_rand(0, $length);
+      if ((preg_match("/^[a-z]+$/", $dict_lines[$key]) == 1) && (strlen($dict_lines[$key]) < 9)) {
+        // String only contains a to z characters
+        $plain = TRUE;
+
+        $password = $password . ucwords($dict_lines[$key]);
+         if($i != $num_of_words)
+          $password = $password . $rand_num;
+      }
     }
-  return $final_rand;
+  }
+
+  return $password;
 }
 
 

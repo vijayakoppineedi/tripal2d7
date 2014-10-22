@@ -273,14 +273,23 @@ function webapollo_user_approval_submit($form, &$form_state) {
     $user_pass_values['user'] = $user;
     $user_pass_values['pass'] = $pass;
   
-    $add_user = "perl add_user.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -p ".$pass;
-    $exec_user = shell_exec($add_user);   
+   // $add_user = "perl add_user.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -p ".$pass;
+   //ON PRODUCTION uncomment below line and comment the very next line for host apollo.nal.usda.gov otherwise it takes localhost
+   // $add_user = "python adduser.py -dbuser ".$db_user." -dbname ".$db_name." -user ".$user." -pwd ".$pass." -host apollo.nal.usda.gov";
+    $exec_user = exec("python adduser.py -dbuser ".$db_user." -dbname ".$db_name." -user ".$user." -pwd ".$pass);   
+    //$exec_user = exec("python adduser.py -dbuser ".$db_user." -dbname ".$db_name." -user ".$user." -pwd ".$pass." -host apollo.nal.usda.gov");   
 
     //Only on prod we have data for species seqids.txt files, but not on dev. change the seqids.txt file while testing on gmod-dev server 
-    //$set_permissions =  shell_exec("perl set_track_permissions.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -t ".$seqids." -rw");
+    /*($organism_short_name == 'diacit')
+      $seqids = '/app/data/other_species/'.$organism_short_name.'/seqids/seqids.txt';
+    else
+      $seqids = '/app/data/BCM_i5k_pilot/'.$organism_short_name.'/seqids/seqids.txt';
+
+    $set_permissions =  shell_exec("perl set_track_permissions.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -t ".$seqids." -rw");
+  */
 
      //DEVELOPMENT 
-     $set_permissions =  shell_exec("perl set_track_permissions.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -t trackseq.txt -rw"); 
+    // $set_permissions =  shell_exec("perl set_track_permissions.pl -D ".$db_name." -U ".$db_user." -P ".$db_pass." -u ".$user." -t trackseq.txt -rw"); 
 
     //Send email to the user about the login credentials to the web apollo site
     $user_email_sent = drupal_mail('web_apollo', 'webapollo_user_approve_email', $to, language_default(), $values, $from, TRUE);

@@ -222,10 +222,24 @@ function custom_i5k_block_view($delta = '') {
   switch ($delta) {   
     case 'statistics':
       $block['subject'] = t('Manual annotation statistics');      
-	  $js_path = drupal_get_path('module', 'custom_i5k').'/anno-summary.js';	  
-      $content = '<div id="stats"></div> <div class="more-link"><span class="icon">&nbsp;</span><a href="/statistics">MORE</a></div>';
+      $js_path = drupal_get_path('module', 'custom_i5k').'/home.js';	 
+				
+      $content = '<div id="stats">
+	               <table style="border: none; width: 100%; text-align:center;">
+				     <tr>
+					   <td style="border: none; width: 50%; font-size: 150%;"><span id="total-annotations"></span></td>
+                       <td style="border: none; width: 50%; font-size: 150%;"><span id="over-species"></span></td>
+					 </tr>
+                     <tr><td style="border: none; width: 50%;">annotations</td><td style="border: none; width: 50%;">species</td></tr>				 
+	               </table>
+				   <table id="recently-annotations">                       
+                     <tr><th>Species</th><th>Annotations</th><th>Last modified</th></tr>                                                        
+                   </table>
+	              </div> ';
+      $content .= '<div class="more-link"><span class="icon">&nbsp;</span><a href="/statistics">MORE</a></div>';
       $block['content'] =  $content;	    
-      drupal_add_js($js_path);   			  
+      //drupal_add_js('https://apollo.nal.usda.gov/stat/json', 'external');	  
+      drupal_add_js($js_path);   
       break;
   }
   

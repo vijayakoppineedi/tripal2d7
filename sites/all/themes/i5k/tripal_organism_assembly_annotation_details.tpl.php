@@ -89,6 +89,14 @@ foreach($node->field_resource_links['und'] as $key => $links) {
        <td><?php print $node->field_gc_content['und'][0]['value']; ?></td>
     </tr> 
     </table>
+	
+	 <table id="annotation">
+       <tr>
+         <td colspan="3"><b>Manual Annotations</b></td>
+       </tr>
+     </table>
+
+	
   </div> 
 </div>
 
