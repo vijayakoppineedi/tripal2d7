@@ -255,7 +255,7 @@ function webapollo_user_approval_submit($form, &$form_state) {
       $organism_data = get_webapollo_organisms($web_apollo_organism);
     }
 	  
-    $organism_nameconv = array('anogla', 'athros', 'cimlec', 'diacit'); //Hard coded the values for db_users_admin
+    $organism_nameconv = array('anogla', 'athros', 'cimlec'); //Hard coded the values for db_users_admin
     $organism_short_name = searchkey($organism_data, $values['organism_key']); 	
 	
     if(in_array($organism_short_name, $organism_nameconv))
