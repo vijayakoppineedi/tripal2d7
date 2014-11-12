@@ -513,8 +513,7 @@ ul.breadcrumb {
   float: left;
   margin-right: 10px;
 }
-/* h5ai filetree index for each organism page. Hiding parent directory row. */
- 
+
 .node-type-chado-organism  .block__content table tr:nth-child(2) { 
   display: none;
 }
