@@ -82,7 +82,7 @@ function get_statistics() {
   drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.metadata.js');
   drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.tablesorter.min.js');
 
-  $content .= '<div id="stat"></div>'; 
+  $content .= '<div id="stat"></div>';
   drupal_add_js($js_path);
 
   return $content;
@@ -212,6 +212,13 @@ function custom_i5k_block_info() {
     // DRUPAL_CACHE_PER_ROLE will be assumed.
   );
 
+  $blocks['filedata_index'] = array(
+    'info' => t('File data indexing'),
+	'status' => TRUE,
+    'region' => 'sidebar_second',
+    // DRUPAL_CACHE_PER_ROLE will be assumed.
+  );
+  
   return $blocks;
 } 
 
@@ -225,28 +232,58 @@ function custom_i5k_block_view($delta = '') {
   switch ($delta) {   
     case 'statistics':
       $block['subject'] = t('Manual annotation statistics');      
-      $js_path = drupal_get_path('module', 'custom_i5k').'/home.js';	 
-				
-      $content = '<div id="stats">
-	               <table style="border: none; width: 100%; text-align:center;">
-				     <tr>
-					   <td style="border: none; width: 50%; font-size: 150%;"><span id="total-annotations"></span></td>
-                       <td style="border: none; width: 50%; font-size: 150%;"><span id="over-species"></span></td>
-					 </tr>
-                     <tr><td style="border: none; width: 50%;">annotations</td><td style="border: none; width: 50%;">species</td></tr>				 
-	               </table>
-				   <table id="recently-annotations">                       
-                     <tr><th>Species</th><th>Annotations</th><th>Last modified</th></tr>                                                        
-                   </table>
-	              </div> ';
-      $content .= '<div class="more-link"><span class="icon">&nbsp;</span><a href="/statistics">MORE</a></div>';
+	  $js_path = drupal_get_path('module', 'custom_i5k').'/anno-summary.js';	  
+      $content = '<div id="stats"></div> <div class="more-link"><span class="icon">&nbsp;</span><a href="/statistics">MORE</a></div>';
       $block['content'] =  $content;	    
-      //drupal_add_js('https://apollo.nal.usda.gov/stat/json', 'external');	  
-      drupal_add_js($js_path);   
+      drupal_add_js($js_path);   			  
       break;
+	case 'filedata_index':
+      $block['subject'] = t('Species file data indexing'); 
+	  
+      require_once("/_h5ai/server/php/inc/util.php");
+	  require_once("/_h5ai/server/php/inc/setup.php");
+	  require_once("/_h5ai/server/php/inc/class-api.php");
+	  require_once("/_h5ai/server/php/inc/class-app.php");
+	  require_once("/_h5ai/server/php/inc/class-archive.php");
+	  require_once("/_h5ai/server/php/inc/class-item.php");
+	  require_once("/_h5ai/server/php/inc/class-thumb.php");
+	  
+      // node load to get organism genus and species. 
+	  $nid = arg(1);
+	  $node = node_load($nid);
+	  
+      $node_organism = $node->organism->genus."_".$node->organism->species; 
+	  
+	  $url = "/sites/default/files/data/Arthropoda/";
+	  
+	  $short_name = strtolower(substr($node->organism->genus, 0, 3).substr($node->organism->species, 0, 3));	  
+	  
+	  $node_organism = rawurlencode("(".$node_organism.")");
+	  
+	  $species_url = $url.$short_name."-".$node_organism."/";	    
+	  
+      setup($species_url);
+	  
+      $app = new App();
+
+	  if (has_request_param("action")) {
+        $api = new Api($app);
+		$api->apply();
+	  } else {	
+        define("FALLBACK", $app->get_fallback());   
+      }
+	 
+	  $block['content'] = FALLBACK;
+	  drupal_add_js('/_h5ai/client/js/scripts_untree.js');  
+	  break;
   }
   
   return $block;  
+}
+
+
+function normalized_require_once1($lib) {
+    require_once(preg_replace("#[\\\\/]+#", "/", dirname(__FILE__) . "/inc/${lib}.php"));
 }
 
 /**
@@ -259,15 +296,8 @@ function custom_i5k_block_view($delta = '') {
 
 function custom_i5k_node_view_alter(&$build) {
   global $theme;  
-  if(isset($build['body']['#bundle']) && $build['body']['#bundle'] != 'chado_organism') {
-  } else {
-    drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.metadata.js');
-    drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.tablesorter.min.js');
-
-    $js_path = drupal_get_path('module', 'custom_i5k').'/organism.js';
-    drupal_add_js($js_path);
-  }
-    // if this is not a full node view, we do not want to alter
+//echo "<pre>"; print_r($build); echo "</pre>";
+  // if this is not a full node view, we do not want to alter
   if ($build['#view_mode'] != 'full' OR !array_key_exists('#tripal_generic_node_template', $build)) {
     return;
   }
@@ -290,12 +320,6 @@ function custom_i5k_node_view_alter(&$build) {
   
   $cache = cache_get("theme_registry:$theme", 'cache');
   $node = $build['#node'];
-
-  //Shortname for organism to send the organism shortname var to the organism.js file
-  $org_shortname = strtolower(substr($node->organism->genus, 0, 3)).strtolower(substr($node->organism->species, 0, 3));
-  drupal_add_js(array('custom_i5k' => array('org_shortname' => $org_shortname)), array('type' => 'setting'));
- 
-
   $toc = array();
   $toc_html = '';
   
@@ -593,38 +617,6 @@ function custom_i5k_node_view_alter(&$build) {
   $build['tripal_toc']['#markup'] = "<div id=\"$node->type-tripal-toc-pane\" class=\"tripal-toc-pane\">$toc_html</div>";
 }
 
-/**
- * feature alignment
- */
-function custom_i5k_feature_alignments($variables) {
- //print_r($variables);exit;
-  // we want to provide a new variable that contains the matched features.
-  $feature = $variables['node']->feature;
-
-  // get the featureloc src features
-  $options = array(
-    'return_array' => 1,
-    'include_fk' => array(
-      'srcfeature_id' => array(
-        'type_id' => 1,
-      ),
-    ),
-  );
-
-  $feature = chado_expand_var($feature, 'table', 'featureloc', $options);
-
-  // because there are two foriegn keys in the featureloc table with the feature table
-  // we have to access the records for each by specifying the field name after the table name:
-  $ffeaturelocs = $feature->featureloc->feature_id;
-
-  // now extract the sequences
-  $featureloc_sequences = tripal_feature_load_featureloc_sequences($feature->feature_id, $ffeaturelocs);
-  $feature->featureloc_sequences = $featureloc_sequences;
- 
-  return $feature->featureloc_sequences;  
-} 
- 
-
 
 /**
  *  Show list of all annotations for the organism listed.
@@ -692,6 +684,39 @@ function show_annotations($nid) {
 
   return $html;
 }
+
+
+/**
+ * feature alignment
+ */
+function custom_i5k_feature_alignments($variables) {
+ //print_r($variables);exit;
+  // we want to provide a new variable that contains the matched features.
+  $feature = $variables['node']->feature;
+
+  // get the featureloc src features
+  $options = array(
+    'return_array' => 1,
+    'include_fk' => array(
+      'srcfeature_id' => array(
+        'type_id' => 1,
+      ),
+    ),
+  );
+
+  $feature = chado_expand_var($feature, 'table', 'featureloc', $options);
+
+  // because there are two foriegn keys in the featureloc table with the feature table
+  // we have to access the records for each by specifying the field name after the table name:
+  $ffeaturelocs = $feature->featureloc->feature_id;
+
+  // now extract the sequences
+  $featureloc_sequences = tripal_feature_load_featureloc_sequences($feature->feature_id, $ffeaturelocs);
+  $feature->featureloc_sequences = $featureloc_sequences;
+ 
+  return $feature->featureloc_sequences;  
+} 
+ 
 
 /**
  *  Annotation title callback
