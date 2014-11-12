@@ -278,7 +278,7 @@ class App {
         $html .= "</tr>";
 
 		 //Image - IF from tree starts with client and if from organism page starts with _h5ai
-		  $folder_img = '_h5ai/';  $width = "width='24px'";
+		  $folder_img = 'h5ai/';  $width = "width='24px'";
 		  if(($match_result == 1) && (count($match_result) != 0)) {		  
 		    $folder_img = '';
 			$width = '';
