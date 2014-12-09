@@ -29,8 +29,26 @@ function custom_i5k_menu() {
     'type' => MENU_CALLBACK,
   );
   
+  
+  $items['detail_transcript/%'] = array(
+    'title' => 'Detailed transcript view',	
+    'page callback' => 'detailed_transcript_view',
+	'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['zclip/%'] = array(
+    'title' => 'Zclip',	
+    'page callback' => 'zclip_data',	
+	'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  
   return $items;
 }
+
+
 
 /**
  *  Retrieving the emailid for the selected community contact on the organism page.
@@ -60,6 +78,7 @@ function get_community_contact_emailid($nid) {
   exit;
 }
 
+
 /**
  *  Redirecting to home page after user login.
  */
@@ -80,7 +99,7 @@ function get_statistics() {
   $content = '';
    drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.metadata.js');
   drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.tablesorter.min.js');
-  $js_path = drupal_get_path('module', 'custom_i5k').'/stat.js';
+  $js_path = drupal_get_path('module', 'custom_i5k').'/theme/js/stat.js';
 
   $content .= '<div id="stat"></div>';
   drupal_add_js($js_path);
@@ -215,8 +234,9 @@ function custom_i5k_block_info() {
   
   $blocks['filedata_index'] = array(
     'info' => t('File data indexing'),
-	'status' => TRUE,
+    'status' => TRUE,
     'region' => 'sidebar_second',
+   'cache' => DRUPAL_NO_CACHE,
     // DRUPAL_CACHE_PER_ROLE will be assumed.
   );
 
@@ -230,10 +250,11 @@ function custom_i5k_block_info() {
  */
 function custom_i5k_block_view($delta = '') {
   // The $delta parameter tells us which block is being requested.
+  $block = array();
   switch ($delta) {   
     case 'statistics':
       $block['subject'] = t('Manual annotation statistics');      
-      $js_path = drupal_get_path('module', 'custom_i5k').'/home.js';	  
+      $js_path = drupal_get_path('module', 'custom_i5k').'/theme/js/home.js';	  
       $content = '<div id="stats"> 
                     <table style="border: none; width: 100%; text-align:center;">
                       <tr>
@@ -251,49 +272,238 @@ function custom_i5k_block_view($delta = '') {
       $block['content'] =  $content;	    
       drupal_add_js($js_path);   			  
       break;
-	case 'filedata_index':
-      $block['subject'] = t('Species file data indexing'); 
+    case 'filedata_index':     
 	  
-      require_once("/h5ai/server/php/inc/util.php");
-	  require_once("/h5ai/server/php/inc/setup.php");
-	  require_once("/h5ai/server/php/inc/class-api.php");
-	  require_once("/h5ai/server/php/inc/class-app.php");
-	  require_once("/h5ai/server/php/inc/class-archive.php");
-	  require_once("/h5ai/server/php/inc/class-item.php");
-	  require_once("/h5ai/server/php/inc/class-thumb.php");
+      include_once("h5ai/server/php/inc/util.php");
+      include_once("h5ai/server/php/inc/setup.php");
+      include_once("h5ai/server/php/inc/class-api.php");
+      include_once("h5ai/server/php/inc/class-app.php");
+      include_once("h5ai/server/php/inc/class-archive.php");
+      include_once("h5ai/server/php/inc/class-item.php");
+      include_once("h5ai/server/php/inc/class-thumb.php");
 	  
       // node load to get organism genus and species. 
-	  $nid = arg(1);
-	  $node = node_load($nid);
-	  
+      $nid = arg(1);
+      if(is_numeric($nid))
+        $node = node_load($nid);
+
       $node_organism = $node->organism->genus."_".$node->organism->species; 
 	  
-	  $url = "/sites/default/files/data/Arthropoda/";
+	//  $url = "/sites/default/files/data/Arthropoda/";
+      $url = "/data/Arthropoda/";
+  
+      $short_name = strtolower(substr($node->organism->genus, 0, 3).substr($node->organism->species, 0, 3));	  
 	  
-	  $short_name = strtolower(substr($node->organism->genus, 0, 3).substr($node->organism->species, 0, 3));	  
+      $node_organism = rawurlencode("(".$node_organism.")");
 	  
-	  $node_organism = rawurlencode("(".$node_organism.")");
-	  
-	  $species_url = $url.$short_name."-".$node_organism."/";	    
-	  
+      $species_url = $url.$short_name."-".$node_organism."/";	    
+
+ //$species_url = "/data/Arthropoda/athros-%28Athalia_rosae%29";	  
       setup($species_url);
 	  
       $app = new App();
 
-	  if (has_request_param("action")) {
+      if (has_request_param("action")) {
         $api = new Api($app);
 		$api->apply();
 	  } else {	
         define("FALLBACK", $app->get_fallback());   
       }
-	 
-	  $block['content'] = FALLBACK;
-	  drupal_add_js('/h5ai/client/js/scripts_untree.js');  
-	  break;
+	  
+      $block['subject'] = t($node->title.' data files');
+      $block['content'] = FALLBACK;
+      drupal_add_js('h5ai/client/js/scripts_untree.js');  
+      break;
+   
   }
   
   return $block;  
 }
+/**
+ * Popup display with corresponding residue
+ */
+function zclip_data($fid_type) {
+  $fid_type = explode("-", $fid_type);
+  $fid = $fid_type[0];
+  $type = $fid_type[1];
+  $field = 'fr.subject_id';
+  if($type == 'gene')
+    $field = 'fr.object_id';
+   //TODO: write a query to get residues from featureloc and feature table
+  $sql = "select fr.subject_id, fr.object_id, fr.type_id, c.name as typename, f.name, f.uniquename, f.residues, f.feature_id, f.seqlen, fc.srcfeature_id, fc.feature_id as fcfeature_id, fc.fmin, fc.fmax, fc.strand from  chado.feature_relationship fr, chado.feature f, chado.featureloc fc, chado.cvterm  c where f.feature_id=fr.subject_id and fc.feature_id=f.feature_id and f.type_id=c.cvterm_id and ".$field."=:fid order by c.name";
+ echo "sql ".$sql."<br>".$fid;
+  $query = db_query($sql, array(':fid' => $fid));
+  
+  $residues = '';   $title = ''; $popup = '';
+  foreach($query as $result) {  
+    $title = $result->name; 
+    $residues = $result->residues;	
+  }  
+  
+  print '<script type="text/javascript" src="/misc/jquery.js"></script> 
+         <script type="text/javascript" src="/sites/all/themes/i5k/js/jquery.zclip.js"></script> 
+         <script type="text/javascript" src="/sites/all/themes/i5k/js/jquery.snippet.min.js"></script>
+         <script type="text/javascript"> 
+           $(document).ready(function(){
+	         $("#copy-button").zclip({
+		       path: "/sites/all/themes/i5k/js/ZeroClipboard.swf",		
+		       copy: function(){		
+		         return $(this).next().next().next().text();
+		       }
+	         });
+           });
+         </script>
+		 <div id="popup-message-window">
+		   <a id="copy-button" href="#" class="">Copy to clipboard</a>
+           <a id="popup-message-close">X</a>
+           <h1 class="popup-message-title">'.$title.'</h1><div id="popup-message-content">'.ereg_replace("(.{80})","\\1<br>",$residues).' body</div>
+		 </div>
+		 <div id="popup-message-background"></div>';	
+exit;			 
+}
+
+/**
+ * Implementation of hook_node_view
+ */
+function custom_i5k_node_view($node, $view_mode, $langcode) {  
+//echo "<pre> "; print_r($node); echo "</pre>";
+  switch ($node->type) {
+    case 'chado_feature':
+	  // Show feature browser and counts
+      if ($view_mode == 'full') {	     
+	     $js_path = drupal_get_path('module', 'custom_i5k').'/theme/js/detail_transcripts.js';
+		 drupal_add_js($js_path);		  
+	 
+		 $jzclip_path = drupal_get_path('theme', 'i5k').'/js/jquery.zclip.js';
+		 drupal_add_js($jzclip_path);
+		 
+		 $jsnippet_path = drupal_get_path('theme', 'i5k').'/js/jquery.snippet.min.js';
+		 drupal_add_js($jsnippet_path);    	 
+
+		$popupjs_path = drupal_get_path('module', 'custom_i5k').'/theme/js/popup.js';
+		 drupal_add_js($popupjs_path);
+		   
+		 $node->content['tripal_feature_transcripts'] = array(
+          '#markup' => theme('tripal_feature_transcripts', array('node' => $node)),
+          '#tripal_toc_id'    => 'transcripts',
+          '#tripal_toc_title' => 'Transcripts',
+        );				
+		
+		
+		$node->content['tripal_feature_detail_transcript'] = array(
+          '#markup' => theme('tripal_feature_detail_transcript', array('node' => $node)),
+          '#tripal_toc_id'    => 'detail_transcripts',
+          '#tripal_toc_title' => 'Detail Transcripts',
+        );
+	  }
+  }
+}
+
+
+/**
+ *  Displaying detailed transcript view 
+ */
+function detailed_transcript_view($fid) {  
+  $data = array();
+  $values = array('subject_id' => $fid);
+  $options = array('return_array' => 1);
+
+  //Get mRNA and gene from feature_relationship table with child as subject_id(mRNA) and parent ad object_id(gene)  
+  $features = chado_generate_var('feature_relationship', $values, $options);
+
+  
+  // Add popup js file
+  //$js_path = drupal_get_path('module', 'custom_i5k').'/theme/js/popup.js';
+  //drupal_add_js($js_path);
+  
+  // Get data for mRNA and gene from featureloc table to get fmin, fmax and strand.
+  $features = chado_expand_var($features, 'table', 'featureloc');
+ // echo "<pre>"; print_r($features); echo "</pre>";
+     $inc = 0;
+  foreach($features as $key => $value) {   
+	$data[$inc]['name'] = $value->object_id->name;
+	$data[$inc]['uniquename'] = $value->object_id->uniquename;
+	$data[$inc]['type'] = $value->object_id->type_id->name;
+	$data[$inc]['refsequence_id'] = $value->object_id->featureloc->feature_id->srcfeature_id->name;
+	$data[$inc]['fmin'] = $value->object_id->featureloc->feature_id->fmin + 1;
+	$data[$inc]['fmax'] = $value->object_id->featureloc->feature_id->fmax;
+	if($value->object_id->featureloc->feature_id->strand == 1)
+	  $data[$inc]['strand'] = '[+]';
+	else if($value->object_id->featureloc->feature_id->strand == -1)
+	  $data[$inc]['strand'] = '[-]';	
+	  // Residues information
+	  
+    /*$residue_feature = db_query("select f.feature_id, f.residues, f.seqlen from chado.feature f where f.feature_id=:feature_id", array(':feature_id' => $value->object_id->featureloc->feature_id->srcfeature_id->feature_id));
+	foreach($residue_feature as $residue) {
+      echo "<pre>"; print_r($residue); echo "</pre>";
+	}*/
+	
+	$data[$inc]['view_sequence'] = "<a href='#".$value->object_id->feature_id."' onclick=\"popup_message_display_popup(".$value->object_id->feature_id.", '".$value->object_id->type_id->name."', 680, 300);\">Fasta</a>";
+	
+	$srcfid = $value->subject_id->featureloc->feature_id->srcfeature_id->feature_id;
+	$src_value = array('feature_id' => $srcfid);	
+	
+	$inc = $inc+1;
+    $data[$inc]['name'] = $value->subject_id->name;
+	$data[$inc]['uniquename'] = $value->subject_id->uniquename;
+	$data[$inc]['type'] = $value->subject_id->type_id->name;
+	$data[$inc]['refsequence_id'] = $value->subject_id->featureloc->feature_id->srcfeature_id->name;
+	$data[$inc]['fmin'] = $value->subject_id->featureloc->feature_id->fmin + 1;
+	$data[$inc]['fmax'] = $value->subject_id->featureloc->feature_id->fmax;
+	if($value->subject_id->featureloc->feature_id->strand == 1)
+	  $data[$inc]['strand'] = '[+]';
+	else if($value->subject_id->featureloc->feature_id->strand == -1)
+	  $data[$inc]['strand'] = '[-]';	
+	 /* echo "fid ".$value->subject_id->feature_id;
+	    $residue_feature = db_query("select f.feature_id, f.residues, f.seqlen from chado.feature f where f.feature_id=:feature_id", array(':feature_id' => $value->subject_id->feature_id));
+	foreach($residue_feature as $residue) {
+      echo "<pre>"; print_r($residue); echo "</pre>";
+	}*/
+	$data[$inc]['view_sequence'] = "<a href='#".$value->subject_id->feature_id."' onclick=\"popup_message_display_popup(".$value->subject_id->feature_id.", '".$value->subject_id->type_id->name."', 680, 300);\">Fasta</a>";
+  }  
+  
+  $query = db_query("select fr.subject_id, fr.object_id, fr.type_id, c.name as typename, f.name, f.uniquename, f.residues, f.feature_id, f.seqlen, fc.srcfeature_id, fc.feature_id as fcfeature_id, fc.fmin, fc.fmax, fc.strand from  chado.feature_relationship fr, chado.feature f, chado.featureloc fc, chado.cvterm  c where f.feature_id=fr.subject_id and fc.feature_id=f.feature_id and f.type_id=c.cvterm_id and fr.object_id=:fid order by c.name", array(':fid' => $fid));
+  
+  $transcript_data = array();  $i = 0;
+  foreach($query as $result) {
+    //echo "<pre>"; print_r($result); echo "</pre>";
+	
+	$transcript_data[$i]['subject_id'] = $result->subject_id;
+	$transcript_data[$i]['object_id'] = $result->object_id;
+	$transcript_data[$i]['type_id'] = $result->type_id;
+	$transcript_data[$i]['typename'] = $result->typename;
+	$transcript_data[$i]['name'] = $result->name;
+	$transcript_data[$i]['uniquename'] = $result->uniquename;	
+	
+	$transcript_data[$i]['feature_id'] = $result->feature_id;
+	$transcript_data[$i]['srcfeature_id'] = $result->srcfeature_id;
+	$transcript_data[$i]['fmin'] = $result->fmin + 1;
+	$transcript_data[$i]['fmax'] = $result->fmax;	
+	$transcript_data[$i]['strand'] = $result->strand;
+	// Residues information
+   /* $residue_feature = db_query("select f.feature_id, f.residues, f.seqlen from chado.feature f where f.feature_id=:feature_id", array(':feature_id' => $result->subject_id));
+	foreach($residue_feature as $residue) {
+      echo "<pre>"; print_r($residue); echo "</pre>";
+	}
+	*/
+	$transcript_data[$i]['view_sequence'] = "<a href='#".$result->subject_id."' onclick=\"popup_message_display_popup(".$result->subject_id.", '".$result->typename."', 680, 300);\">Fasta</a>";
+	
+	$options = array('return_array' => 1);
+	$all_values = array('srcfeature_id' => $result->srcfeature_id, 'feature_id' => $result->feature_id);
+    $sub_features[$i] = chado_generate_var('featureloc', $all_values, $options);  
+    //echo "<pre>"; print_r($sub_features); echo "</pre>";	
+	
+	$i++;
+  }
+
+  $features['data'] = $data;
+  
+  $output = theme('tripal_feature_detail_transcript', array('features' => $features, 'data' => $transcript_data, 'sub_features' => $sub_features));
+  
+  print $output;  
+  exit();
+}
+
 
 /**
  * After the node is built, we want to add instructions to each
@@ -311,7 +521,7 @@ function custom_i5k_node_view_alter(&$build) {
     drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.metadata.js');
     drupal_add_js(drupal_get_path('theme', 'i5k') .'/js/jquery.tablesorter.min.js');
 
-    $js_path = drupal_get_path('module', 'custom_i5k').'/organism.js';
+    $js_path = drupal_get_path('module', 'custom_i5k').'/theme/js/organism.js';
     drupal_add_js($js_path);
   }
 
@@ -340,7 +550,9 @@ function custom_i5k_node_view_alter(&$build) {
   $node = $build['#node'];
 
   //Shortname for organism to send the organism shortname var to the organism.js file
-  $org_shortname = strtolower(substr($node->organism->genus, 0, 3)).strtolower(substr($node->organism->species, 0, 3));
+  $org_shortname = '';
+  if(isset($node->organism->genus) && isset($node->organism->species))
+    $org_shortname = strtolower(substr($node->organism->genus, 0, 3)).strtolower(substr($node->organism->species, 0, 3));
   drupal_add_js(array('custom_i5k' => array('org_shortname' => $org_shortname)), array('type' => 'setting'));
 
 
@@ -534,7 +746,7 @@ function custom_i5k_node_view_alter(&$build) {
       $weight = $overrides['weight'] ? $overrides['weight'] : $weight;
       $hide = $overrides['hide'] ? $overrides['hide'] : $hide;
 	  //VIJAYA - for other fields showing only overview tab with if condition
-	  if($toc_item_title == 'Overview')	  
+	if($toc_item_title == 'Overview' || $toc_item_title == 'Analyses' || $toc_item_title == 'Sequences' || $toc_item_title == 'Synonyms' ||  $toc_item_title == 'Alignments' ||  $toc_item_title == 'Cross References' || $toc_item_title == 'Relationships' || $toc_item_title == 'Transcripts' || $toc_item_title == 'Detail Transcripts')
       $toc_item_link = "<div class=\"tripal_toc_list_item\"><a id=\"$toc_item_id\" class=\"tripal_toc_list_item_link\" href=\"?pane=$toc_item_id\">$toc_item_title</a></div>";
 
 
@@ -643,6 +855,37 @@ function custom_i5k_node_view_alter(&$build) {
 
 
 /**
+ * feature alignment
+ */
+function custom_i5k_feature_alignments($variables) {
+ //print_r($variables);exit;
+  // we want to provide a new variable that contains the matched features.
+  $feature = $variables['node']->feature;
+
+  // get the featureloc src features
+  $options = array(
+    'return_array' => 1,
+    'include_fk' => array(
+      'srcfeature_id' => array(
+        'type_id' => 1,
+      ),
+    ),
+  );
+
+  $feature = chado_expand_var($feature, 'table', 'featureloc', $options);
+
+  // because there are two foriegn keys in the featureloc table with the feature table
+  // we have to access the records for each by specifying the field name after the table name:
+  $ffeaturelocs = $feature->featureloc->feature_id;
+
+  // now extract the sequences
+  $featureloc_sequences = tripal_feature_load_featureloc_sequences($feature->feature_id, $ffeaturelocs);
+  $feature->featureloc_sequences = $featureloc_sequences;
+ 
+  return $feature->featureloc_sequences;  
+} 
+ 
+/**
  *  Show list of all annotations for the organism listed.
  **/
 function show_annotations($nid) { 
@@ -743,10 +986,22 @@ function _remove_mailto_process($text, $filter, $format, $langcode, $cache, $cac
  *  Implementation of hook_theme().
  */
 function custom_i5k_theme() {
+  $core_path = drupal_get_path('module', 'custom_i5k');
+
   return array(
     'tripal_organism_assembly_annotation_details' => array(
       'template' => 'tripal_organism_assembly_annotation_details',
     ),
+	'tripal_feature_transcripts' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_feature_transcripts',
+      'path' => "$core_path/theme/templates",
+    ),
+	'tripal_feature_detail_transcript' => array(
+	  'variables' => array('node' => NULL, 'data' => NULL, 'sub_features' => NULL),
+	  'template' => 'tripal_feature_detail_transcript',
+	  'path' => "$core_path/theme/templates",
+	),
   );
 }
 
