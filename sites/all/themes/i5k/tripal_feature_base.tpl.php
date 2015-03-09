@@ -7,12 +7,13 @@ $options = array('return_array' => 1);
 $synonym = chado_expand_var($feature, 'table', 'feature_synonym', $options);
 
 /* Building feature Synonym  */
-$feature_synonym = "";
+$feature_synonym = "NA";
 if(isset($synonym->feature_synonym) && !empty($synonym->feature_synonym)) {
+  $feature_synonym = "";
   foreach($synonym->feature_synonym as $synonym_obj) {  
     $feature_synonym .= $synonym_obj->synonym_id->name."<br>"; 
   }
-}
+} 
 
 // Location featureloc sequences
 $featureloc_sequences = custom_i5k_feature_alignments($variables);
@@ -22,32 +23,41 @@ if(count($featureloc_sequences) > 0){
     $location = $attrs['location'];
   }
 }  
-//VIJAYA - To display the comments (Note) of all mRNA's and transcripts
+//VIJAYA - To display the comments (Note) of all mRNA's, rRNA etc., and transcripts
 $relationship = tripal_feature_get_feature_relationships($feature);
-$transcript_count = '';
-if(isset($relationship['object']['part of']['mRNA'])) {
-  $transcript_count = "This gene has ".count($relationship['object']['part of']['mRNA']);
-  $transcript_count .= (count($relationship['object']['part of']['mRNA']) > 1)?" mRNA transcripts":" mRNA transcript";
-}
 
-$comment = "";
-if(isset($relationship['object']['part of']['mRNA']) && !empty($relationship['object']['part of']['mRNA'])) {
-  foreach($relationship['object']['part of']['mRNA'] as $key => $child_featurelocs) {
-    $featurelocs_feature_id = $child_featurelocs->child_featurelocs[0]->feature_id;  
-	
-    $select = array('feature_id' => $featurelocs_feature_id, 'type_id' => 85);
-    $columns = array('value', 'feature_id');
-    $featureprop = chado_select_record('featureprop', $columns, $select);
-    if(!empty($featureprop[0]->value))
-      $comment .= $child_featurelocs->record->subject_id->name." - Note: ".$featureprop[0]->value."<br>";
+//Display transcript feature(s) count like rRNA, mRNA etc., data dynamically..
+$transcript_count = '';
+if(isset($relationship['object']['part of'])) {
+foreach($relationship['object']['part of'] as $key => $relationship_obj) {
+ // if(isset($relationship_obj)) {
+    $transcript_count = "<div id='transcript_item'><div id='transcript_value'>This gene has&nbsp;</div><div class='tripal_toc_list_item'><a id='transcripts' class='tripal_toc_list_item_link' href='?pane=transcripts' >".count($relationship_obj);
+    $transcript_count .= (count($relationship_obj) > 1)?" ".$key." transcripts</a></div></div>":" ".$key." transcript</a></div></div>";
+ // }
+
+  //Comment(s)    
+  $comment = "NA";  
+  //type_id = 85 means a comment. "Note" value in field "name".
+  $gene_select = array('feature_id' => $feature->feature_id, 'type_id' => 85);
+  $gene_columns = array('value', 'feature_id');
+  $gene_featureprop = chado_select_record('featureprop', $gene_columns, $gene_select);  
+  if(isset($gene_featureprop) && !empty($gene_featureprop)) {
+	$i = 0; $comment = "";
+	foreach($gene_featureprop as $key => $gene_propobj) {
+	  ($i == 0)? $user_comment .= 'Note: ':'';
+	  $comment = $gene_propobj->value."; ";
+	  $i++; 
+	}
+    $comment = rtrim($comment, '; ');
   }
+
 }
+} // if closing
 
 //VIJAYA gene_var variable is used to differentiate the gene and mRNA pages
-$gene_var = 'gene';
+$gene_var = array('gene', 'pseudogene');
 
  ?>
-
 
 <div class="tripal_feature-data-block-desc tripal-data-block-desc" style='color:red;'></div>
  <?php
@@ -82,7 +92,7 @@ $rows[] = array(
   ),
   $feature->uniquename
 );
-if($feature->type_id->name == $gene_var) {
+if(in_array($feature->type_id->name, $gene_var)) {
 // Synonyms row
  $rows[] = array(
     array(
@@ -113,7 +123,7 @@ $rows[] = array(
 //Comment row
 $rows[] = array(
    array(
-     'data' => 'User Comments',
+     'data' => 'Annotator Comments',
      'header' => TRUE
    ),
    $comment
@@ -210,10 +220,15 @@ print theme_table($table);
   $current_model = $nal_abbreviation."_current_models";
 
   $iframe_location = !empty($location)?$location:'';	 
-
-  $iframe_src = $iframe_src . $nal_abbreviation . "/jbrowse/?loc=" . $iframe_location . "&tracks=DNA%2CAnnotations%2C" . $current_model."&hightlight";
   
+  $nav = '&tracklist=1&overview=0';
+
+  $iframe_src = $iframe_src . $nal_abbreviation . "/jbrowse/?loc=" . $iframe_location .$nav. "&tracks=DNA%2CAnnotations%2C" . $current_model."&hightlight";  
+  //print $iframe_src;
 ?>    
- 
+<!--
+   <div class="organism-iframe">
+   <iframe src="<?php print $iframe_src; ?>" style="width: 100%; height: 650px" marginwidth="0" marginheight="0" frameborder="0" vspace="0" hspace="0" ></iframe>    
+   </div>-->
 
 

@@ -76,17 +76,18 @@ function popup_message_center_popup(width, height) {
 /**
  * Display popup message.
  */
-function popup_message_display_popup(popup_message_title, popup_message_body, width, height) {
-  //Here popup_message_title is nothing but feature_id will change to feature_id once my functionality works perfe
-  //alert("hello "+popup_message_title);
-
-  /*jQuery('#popup-window').append('<div id="popup-message-window"><div>hello test </div><a id="copy-button" href="#" class="">Copy..</a><a id="popup-message-close">X</a>\n\
-   <h1 class="popup-message-title">' + popup_message_title + '</h1><div id="popup-message-content">' + popup_message_body
-    + '</div></div><div id="popup-message-background"></div>');*/
-  var fid = popup_message_title;
-  var type = popup_message_body;	
-  var popup_title = fid+"-"+type;	
-	
+function popup_message_display_popup(fid, type, width, height, unspliced, strand, fmin, fmax) {
+  fmin = (typeof fmin === "undefined") ? "":fmin;
+  fmax = (typeof fmax === "undefined") ? "":fmax;
+  strand = (strand === '-1') ? "negative":strand;
+  
+  unspliced = (typeof unspliced === "undefined") ? "0" : unspliced;
+  var popup_title = "";
+  if(fmin && fmax) {  
+    popup_title = (unspliced == 1)?(fid+"-"+type+"-"+strand+"-"+unspliced):(fid+"-"+type+"-"+strand+"-"+unspliced+"-"+fmin+"-"+fmax);	  
+  } else
+    popup_title = (unspliced == 1)?(fid+"-"+type+"-"+strand+"-"+unspliced):(fid+"-"+type+"-"+strand);	
+  
   jQuery.ajax({
     type: 'POST',
     url: '/zclip/'+popup_title,        
@@ -97,29 +98,30 @@ function popup_message_display_popup(popup_message_title, popup_message_body, wi
 	  
       popup_message_center_popup(width, height);
       popup_message_load_popup();
-  
+    jQuery(".l-region--navigation").css({"display":"none"});
+	
       // Closing popup.
       // Click the x event!
       jQuery("#popup-message-close").click(function() {
         jQuery('#popup-window').text('');
         popup_message_disable_popup();
-	    jQuery("#navigation a:visited").css({"background":"none"}); 
-	    jQuery("#navigation").css({"display":"block"});
+	    jQuery(".l-region--navigation a:visited").css({"background":"none"}); 
+	    jQuery(".l-region--navigation").css({"display":"block"});
       });
       // Click out event!
       jQuery("#popup-message-background").click(function() {
         jQuery('#popup-window').text('');
         popup_message_disable_popup();
-	    jQuery("#navigation a:visited").css({"background":"none"});
-	    jQuery("#navigation").css({"display":"block"});
+	    jQuery(".l-region--navigation a:visited").css({"background":"none"});
+	    jQuery(".l-region--navigation").css({"display":"block"});
       });
       // Press Escape event!
-      jQuery(document).keypress(function(e) {
+      jQuery(document).keydown(function(e) {	  
       if (e.keyCode == 27 && popupStatus == 1) {
 	    jQuery('#popup-window').text('');
         popup_message_disable_popup();	  
-	    jQuery("#navigation a:visited").css({"background":"none"});
-        jQuery("#navigation").css({"display":"block"});
+	    jQuery(".l-region--navigation a:visited").css({"background":"none"});
+        jQuery(".l-region--navigation").css({"display":"block"});
 	  }
     });
   
